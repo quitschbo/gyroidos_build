@@ -182,12 +182,18 @@ include $(WORKDIR)/trustme/build/trustme-ids.mk
 ###################################################
 
 aosp_a0_files:
+	@for i in GmsCore GsfProxy FakeStore; do \
+	   cd $(AOSP_DIR)/packages/apps/$${i} && git clean -f; \
+	done
 	cd $(AOSP_DIR) && source build/envsetup.sh && lunch $(AOSP_A0_LUNCH_COMBO) && m -j$(NPROCS) files
 
 aosp_full_files:
 	@for i in GmsCore GsfProxy FakeStore; do \
-	   mkdir -p $(AOSP_DIR)/out-aosp/target/common/obj/APPS/$${i}_intermediates ; \
+	   cd $(AOSP_DIR)/packages/apps/$${i} && git clean -f; \
 	done
+	#@for i in GmsCore GsfProxy FakeStore; do \
+	#   mkdir -p $(AOSP_DIR)/out-aosp/target/common/obj/APPS/$${i}_intermediates ; \
+	#done
 	cd $(AOSP_DIR) && source build/envsetup.sh && lunch $(AOSP_AX_LUNCH_COMBO) && m -j$(NPROCS) files
 
 $(FINAL_OUT):
@@ -199,7 +205,8 @@ aosp_a0_system: aosp_a0_files
 	ln -sf ../boot.img $(FINAL_OUT)/a0os-$(TRUSTME_VERSION)/boot.img
 	rsync -a --delete $(AOSP_DIR)/out-a0/target/product/trustme_$(DEVICE)_a0/system/ $(OUTDIR)/aosp/trustme_$(DEVICE)/system_a0/system/
 	$(RM) -r $(OUTDIR)/aosp/trustme_$(DEVICE)/feature_*_a0
-	@for i in telephony camera gps; do \
+	#@for i in telephony camera gps; do 
+	@for i in gps; do \
 	   bash $(WORKDIR)/trustme/build/remove-system-files.sh a0 $${i} $(CFG_OVERLAY_DIR)/$(DEVICE) \
 	      $(OUTDIR)/aosp/trustme_$(DEVICE) $(OUTDIR)/aosp/trustme_$(DEVICE)/system_a0 ; \
 	done
